@@ -1,0 +1,7 @@
+venv/
+recreate_and_populate_db.py
+alembic/
+.vscode/
+.env
+alembic.ini
+*.pyc
