@@ -43,3 +43,19 @@ nav ul li a:hover {
     background-color: #3498db;
     color: #ffffff;
 }
+
+.logout-button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-decoration: underline;
+  }
+  
+  .logout-button:hover {
+    text-decoration: none;
+    color: #007bff; /* Optional: Add hover effect color */
+  }
+  

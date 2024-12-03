@@ -14,8 +14,8 @@ const Navbar = ({ userRole, onLogout }) => {
         {userRole === "PRINCIPAL" && (
           <li><Link to="/principal-dashboard">Principal Dashboard</Link></li>
         )}
-        {userRole === "PARENT" && (
-          <li><Link to="/parent-dashboard">Parent Dashboard</Link></li>
+        {userRole === "STAFF" && (
+          <li><Link to="/staff-dashboard">Staff Dashboard</Link></li>
         )}
         {userRole ? (
           <li onClick={onLogout}>Logout</li>

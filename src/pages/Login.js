@@ -1,46 +1,54 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import '../styles/Login.css';
+import "../styles/Login.css";
 // eslint-disable-next-line
-import qs from 'qs';
-import { jwtDecode } from 'jwt-decode';
+import qs from "qs";
+import { jwtDecode } from "jwt-decode"; // Ensure correct import
 
-const Login = ({ onLogin }) => { // Accept onLogin as a prop from App.js
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+const Login = ({ onLogin }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      console.log('Attempting login...'); // Debug
-      const response = await axios.post('http://localhost:8000/auth/login', `username=${email}&password=${password}`, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
+      console.log("Attempting login..."); // Debug
+      const response = await axios.post(
+        "http://localhost:8000/auth/login",
+        `username=${email}&password=${password}`,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
 
       // Save the token in localStorage
       const token = response.data.access_token;
-      console.log('Login successful. Token received:', token); // Debug
+      console.log("Login successful. Token received:", token); // Debug
 
-      localStorage.setItem('token', token);
+      localStorage.setItem("token", token);
 
       // Decode the token to get user role
       const decoded = jwtDecode(token);
-      console.log('Decoded Token:', decoded);
+      console.log("Decoded Token:", decoded);
 
       // Update the user role in App.js
       onLogin(token);
-      console.log('onLogin called with token'); // Debug
+      console.log("onLogin called with token"); // Debug
 
-      // Redirect to the home page
-      navigate('/');
+      // Redirect based on role
+      if (decoded.role === "STAFF" || decoded.role === "PRINCIPAL") {
+        navigate("/action"); // Redirect STAFF and PRINCIPAL to ActionPage
+      } else {
+        navigate("/"); // Redirect others to Homepage
+      }
     } catch (error) {
-      setErrorMessage('Invalid email or password. Please try again.');
-      console.error('Login failed:', error); // Debug
+      setErrorMessage("Invalid email or password. Please try again.");
+      console.error("Login failed:", error); // Debug
     }
   };
 
@@ -70,5 +78,3 @@ const Login = ({ onLogin }) => { // Accept onLogin as a prop from App.js
 };
 
 export default Login;
-
-
