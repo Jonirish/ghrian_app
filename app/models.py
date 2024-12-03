@@ -1,7 +1,7 @@
 # app/models.py
 
 from enum import Enum
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum as SQLAlchemyEnum, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Enum as SQLAlchemyEnum, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db import Base
@@ -64,7 +64,8 @@ class Photo(Base):
     created_at = Column(DateTime, server_default=func.now())
     school_id = Column(Integer, ForeignKey("schools.id"), nullable=True)
     status = Column(SQLAlchemyEnum(PhotoStatusEnum), default=PhotoStatusEnum.PENDING, nullable=False)
-
+    authorized_for_parent = Column(Boolean, default=False)
+    
     # Relationship with User
     user = relationship("User", back_populates="photos")
 

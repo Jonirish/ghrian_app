@@ -31,8 +31,10 @@ def review_photo_helper(photo_id: int, decision: str, db: Session, notify: bool 
     if photo.status != "PENDING":
         raise HTTPException(status_code=400, detail="Photo has already been reviewed")
 
-    # Update status
+    # Update status and parent authorization
     photo.status = decision
+    if decision == "APPROVED":
+        photo.authorized_for_parent = True  # Mark as viewable for parents
     db.commit()
 
     # Notify staff if required
@@ -144,14 +146,61 @@ def view_photos(
     db: Session = Depends(get_db)
 ):
     if current_user.role == RoleEnum.PARENT:
-        # Parents can only view pre-authorized photos
-        photos = db.query(Photo).filter(Photo.authorized_for_parent == True).all()
-        if not photos:
-            raise HTTPException(status_code=403, detail="No authorized photos available for viewing.")
-    elif current_user.role in [RoleEnum.STAFF, RoleEnum.PRINCIPAL, RoleEnum.ADMIN]:
-        # Staff, Principals, and Admins can view all photos
+        # Parents can view only authorized photos from their school
+        photos = db.query(Photo).filter(
+            Photo.authorized_for_parent == True,
+            Photo.school_id == current_user.school_id,
+        ).all()
+    elif current_user.role in [RoleEnum.STAFF, RoleEnum.PRINCIPAL]:
+        # Staff and Principals can view all approved photos
+        photos = db.query(Photo).filter(Photo.status == "APPROVED").all()
+    elif current_user.role == RoleEnum.ADMIN:
+        # Admins can view all photos
         photos = db.query(Photo).all()
     else:
         raise HTTPException(status_code=403, detail="Unauthorized access")
 
     return [{"id": photo.id, "file_path": photo.file_path, "story": photo.story} for photo in photos]
+
+
+@router.get("/staff/pending-photos", response_model=list)
+def get_pending_photos(
+    current_user=Depends(require_role([RoleEnum.STAFF])),
+    db: Session = Depends(get_db)
+):
+    # Fetch pending photos uploaded by the current staff member
+    photos = db.query(Photo).filter(
+        Photo.user_id == current_user.id,
+        Photo.status == "PENDING",
+    ).all()
+
+    return [
+        {
+            "id": photo.id,
+            "file_path": photo.file_path,
+            "story": photo.story,
+            "created_at": photo.created_at,
+        }
+        for photo in photos
+    ]
+
+@router.get("/staff/approved-photos", response_model=list)
+def get_approved_photos(
+    current_user=Depends(require_role([RoleEnum.STAFF])),
+    db: Session = Depends(get_db)
+):
+    # Fetch approved photos for the current staff member
+    photos = db.query(Photo).filter(
+        Photo.user_id == current_user.id,
+        Photo.status == "APPROVED",
+    ).all()
+
+    return [
+        {
+            "id": photo.id,
+            "file_path": photo.file_path,
+            "story": photo.story,
+            "created_at": photo.created_at,
+        }
+        for photo in photos
+    ]
